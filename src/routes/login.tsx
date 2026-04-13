@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Shield, Loader2 } from 'lucide-react'
-import { getSSOLoginUrl } from '#/lib/auth'
+import { getOAuthAuthorizeUrl } from '#/lib/auth-client'
 import { Button } from '#/components/ui/button'
 import {
   Card,
@@ -19,11 +19,11 @@ function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSSO() {
+  function handleSSO() {
     setLoading(true)
     setError(null)
     try {
-      const url = getSSOLoginUrl()
+      const url = getOAuthAuthorizeUrl()
       window.location.href = url
     } catch (err) {
       setError(
@@ -59,13 +59,13 @@ function LoginPage() {
 
           <Button className="w-full" onClick={handleSSO} disabled={loading}>
             {loading && <Loader2 className="size-4 animate-spin" />}
-            {loading ? 'Redirecting to Renovel...' : 'Sign in with Renovel SSO'}
+            {loading ? 'Redirecting...' : 'Sign in with Renovel'}
           </Button>
 
           <p className="mt-4 text-center text-xs text-muted-foreground">
             Only master administrators can access this panel.
             <br />
-            You will be redirected to renovel.se to authenticate.
+            You will be redirected to Renovel to authenticate.
           </p>
         </CardContent>
       </Card>

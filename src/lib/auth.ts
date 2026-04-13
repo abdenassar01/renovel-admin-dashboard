@@ -1,5 +1,5 @@
-import { api, getRenovelBaseUrl } from './api-client'
-import type { AuthSession, User } from './types'
+import { api } from './api-client'
+import type { User } from './types'
 
 const AUTH_STORAGE_KEY = 'renovel_admin_token'
 const USER_STORAGE_KEY = 'renovel_admin_user'
@@ -20,9 +20,9 @@ export function getStoredUser(): User | null {
   }
 }
 
-export function setAuthSession(session: AuthSession) {
-  localStorage.setItem(AUTH_STORAGE_KEY, session.token)
-  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(session.user))
+export function setAuthSession(token: string, user: User) {
+  localStorage.setItem(AUTH_STORAGE_KEY, token)
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
 }
 
 export function clearAuthSession() {
@@ -34,34 +34,10 @@ export function isMasterRole(user: User | null): boolean {
   return user?.role === 'master'
 }
 
-export function getSSOLoginUrl(): string {
-  const baseUrl = getRenovelBaseUrl()
-  const callbackUrl = encodeURIComponent(
-    `${window.location.origin}/login/callback`,
-  )
-  return `${baseUrl}/api/auth/sign-in?callbackURL=${callbackUrl}`
-}
-
-export async function handleSSOCallback(token: string): Promise<AuthSession> {
-  const session = await api.post<AuthSession>('/auth/sso/verify', { token })
-  if (session.user.role !== 'master') {
-    clearAuthSession()
-    throw new Error(
-      'Access denied. Only master administrators can access this panel.',
-    )
-  }
-  setAuthSession(session)
-  return session
-}
-
 export async function logout() {
-  try {
-    await api.post('/auth/logout')
-  } finally {
-    clearAuthSession()
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login'
-    }
+  clearAuthSession()
+  if (typeof window !== 'undefined') {
+    window.location.href = '/login'
   }
 }
 

@@ -8,20 +8,26 @@ export const Route = createFileRoute('/login/callback')({
 })
 
 function SSOCallbackPage() {
-  const { ssoLogin } = useAuth()
+  const { handleCallback } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const token = params.get('token')
+    const code = params.get('code')
+    const errorParam = params.get('error')
 
-    if (!token) {
-      setError('No authentication token received. Please try again.')
+    if (errorParam) {
+      setError(params.get('error_description') || `SSO error: ${errorParam}`)
       return
     }
 
-    ssoLogin(token)
+    if (!code) {
+      setError('No authorization code received. Please try again.')
+      return
+    }
+
+    handleCallback(code)
       .then(() => navigate({ to: '/' }))
       .catch((err) => {
         setError(
@@ -30,7 +36,7 @@ function SSOCallbackPage() {
             : 'Authentication failed. Please try again.',
         )
       })
-  }, [ssoLogin, navigate])
+  }, [handleCallback, navigate])
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -54,7 +60,9 @@ function SSOCallbackPage() {
         ) : (
           <>
             <Loader2 className="size-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Authenticating...</p>
+            <p className="text-sm text-muted-foreground">
+              Authenticating with Renovel...
+            </p>
           </>
         )}
       </div>
