@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Shield, Loader2 } from 'lucide-react'
 import { useAuth } from '#/contexts/auth-context'
 
-export const Route = createFileRoute('/login/callback')({
+export const Route = createFileRoute('/callback')({
   component: SSOCallbackPage,
 })
 
@@ -14,7 +14,7 @@ function SSOCallbackPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const code = params.get('code')
+    const token = params.get('token')
     const errorParam = params.get('error')
 
     if (errorParam) {
@@ -22,13 +22,13 @@ function SSOCallbackPage() {
       return
     }
 
-    if (!code) {
-      setError('No authorization code received. Please try again.')
+    if (!token) {
+      setError('No token received. Please try again.')
       return
     }
 
-    handleCallback(code)
-      .then(() => navigate({ to: '/' }))
+    handleCallback(token)
+      .then(() => navigate({ to: '/', replace: true }))
       .catch((err) => {
         setError(
           err instanceof Error

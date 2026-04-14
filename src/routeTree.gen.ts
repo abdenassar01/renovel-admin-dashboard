@@ -10,9 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as CallbackRouteImport } from './routes/callback'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as LoginCallbackRouteImport } from './routes/login/callback'
 import { Route as AuthenticatedOrganizationsIndexRouteImport } from './routes/_authenticated/organizations/index'
 import { Route as AuthenticatedFeedbackIndexRouteImport } from './routes/_authenticated/feedback/index'
 import { Route as AuthenticatedSettingsTeamRouteImport } from './routes/_authenticated/settings/team'
@@ -31,6 +31,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CallbackRoute = CallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -39,11 +44,6 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
-} as any)
-const LoginCallbackRoute = LoginCallbackRouteImport.update({
-  id: '/callback',
-  path: '/callback',
-  getParentRoute: () => LoginRoute,
 } as any)
 const AuthenticatedOrganizationsIndexRoute =
   AuthenticatedOrganizationsIndexRouteImport.update({
@@ -120,8 +120,8 @@ const AuthenticatedOrganizationsOrgIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
-  '/login': typeof LoginRouteWithChildren
-  '/login/callback': typeof LoginCallbackRoute
+  '/callback': typeof CallbackRoute
+  '/login': typeof LoginRoute
   '/organizations/$orgId': typeof AuthenticatedOrganizationsOrgIdRoute
   '/settings/activity-logs': typeof AuthenticatedSettingsActivityLogsRoute
   '/settings/categories': typeof AuthenticatedSettingsCategoriesRoute
@@ -136,8 +136,8 @@ export interface FileRoutesByFullPath {
   '/organizations/': typeof AuthenticatedOrganizationsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/login': typeof LoginRouteWithChildren
-  '/login/callback': typeof LoginCallbackRoute
+  '/callback': typeof CallbackRoute
+  '/login': typeof LoginRoute
   '/': typeof AuthenticatedIndexRoute
   '/organizations/$orgId': typeof AuthenticatedOrganizationsOrgIdRoute
   '/settings/activity-logs': typeof AuthenticatedSettingsActivityLogsRoute
@@ -155,8 +155,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/login': typeof LoginRouteWithChildren
-  '/login/callback': typeof LoginCallbackRoute
+  '/callback': typeof CallbackRoute
+  '/login': typeof LoginRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/organizations/$orgId': typeof AuthenticatedOrganizationsOrgIdRoute
   '/_authenticated/settings/activity-logs': typeof AuthenticatedSettingsActivityLogsRoute
@@ -175,8 +175,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/callback'
     | '/login'
-    | '/login/callback'
     | '/organizations/$orgId'
     | '/settings/activity-logs'
     | '/settings/categories'
@@ -191,8 +191,8 @@ export interface FileRouteTypes {
     | '/organizations/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/callback'
     | '/login'
-    | '/login/callback'
     | '/'
     | '/organizations/$orgId'
     | '/settings/activity-logs'
@@ -209,8 +209,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
+    | '/callback'
     | '/login'
-    | '/login/callback'
     | '/_authenticated/'
     | '/_authenticated/organizations/$orgId'
     | '/_authenticated/settings/activity-logs'
@@ -228,7 +228,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  LoginRoute: typeof LoginRouteWithChildren
+  CallbackRoute: typeof CallbackRoute
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -238,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/callback': {
+      id: '/callback'
+      path: '/callback'
+      fullPath: '/callback'
+      preLoaderRoute: typeof CallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -253,13 +261,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
-    }
-    '/login/callback': {
-      id: '/login/callback'
-      path: '/callback'
-      fullPath: '/login/callback'
-      preLoaderRoute: typeof LoginCallbackRouteImport
-      parentRoute: typeof LoginRoute
     }
     '/_authenticated/organizations/': {
       id: '/_authenticated/organizations/'
@@ -388,19 +389,10 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface LoginRouteChildren {
-  LoginCallbackRoute: typeof LoginCallbackRoute
-}
-
-const LoginRouteChildren: LoginRouteChildren = {
-  LoginCallbackRoute: LoginCallbackRoute,
-}
-
-const LoginRouteWithChildren = LoginRoute._addFileChildren(LoginRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  LoginRoute: LoginRouteWithChildren,
+  CallbackRoute: CallbackRoute,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

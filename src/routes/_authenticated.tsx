@@ -16,8 +16,9 @@ export const Route = createFileRoute('/_authenticated')({
 
 function AuthenticatedLayout() {
   const { isLoading, isAuthenticated } = useAuth()
+  const token = getStoredToken()
 
-  if (isLoading) {
+  if (isLoading || (token && !isAuthenticated)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="flex flex-col items-center gap-3">

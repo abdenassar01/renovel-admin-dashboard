@@ -14,14 +14,14 @@ import {
   logout as authLogout,
   clearAuthSession,
 } from '#/lib/auth'
-import { exchangeCodeForToken, getUserInfo } from '#/lib/auth-client'
+import { validateAdminSession } from '#/lib/auth-client'
 import type { User } from '#/lib/types'
 
 type AuthContextType = {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
-  handleCallback: (code: string) => Promise<void>
+  handleCallback: (token: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -57,22 +57,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false))
   }, [])
 
-  const handleCallback = useCallback(async (code: string) => {
-    const { accessToken } = await exchangeCodeForToken(code)
-
-    const userInfo = await getUserInfo(accessToken)
-
-    const sub = (userInfo as any).sub as string
-
-    const convexUser = await fetchConvexUser(accessToken, sub)
+  const handleCallback = useCallback(async (token: string) => {
+    const convexUser = await validateAdminSession(token)
     if (!convexUser || convexUser.role !== 'master') {
       throw new Error(
         'Access denied. Only master administrators can access this panel.',
       )
     }
 
-    setAuthSession(accessToken, convexUser)
-    setUser(convexUser)
+    const user: User = {
+      _id: convexUser._id,
+      email: convexUser.email,
+      role: convexUser.role as User['role'],
+      fullName: convexUser.fullName,
+      name: convexUser.name,
+      organizationId: convexUser.organizationId,
+      _creationTime: Date.now(),
+    }
+
+    setAuthSession(token, user)
+    setUser(user)
   }, [])
 
   const logout = useCallback(async () => {
@@ -93,24 +97,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-async function fetchConvexUser(
-  accessToken: string,
-  _authUserId: string,
-): Promise<User | null> {
-  try {
-    const CONVEX_SITE_URL =
-      import.meta.env.VITE_CONVEX_SITE_URL ||
-      'https://wonderful-mongoose-290.eu-west-1.convex.site'
-    const res = await fetch(`${CONVEX_SITE_URL}/api/auth/session`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-    if (!res.ok) return null
-    return res.json()
-  } catch {
-    return null
-  }
 }
 
 export function useAuth() {

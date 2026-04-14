@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Shield, Loader2 } from 'lucide-react'
-import { getOAuthAuthorizeUrl } from '#/lib/auth-client'
+import { getSsoLoginUrl } from '#/lib/auth-client'
 import { Button } from '#/components/ui/button'
 import {
   Card,
@@ -23,7 +23,7 @@ function LoginPage() {
     setLoading(true)
     setError(null)
     try {
-      const url = getOAuthAuthorizeUrl()
+      const url = getSsoLoginUrl()
       window.location.href = url
     } catch (err) {
       setError(
