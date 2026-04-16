@@ -1,5 +1,8 @@
-export const RENOVEL_APP_URL =
-  import.meta.env.VITE_RENOVEL_APP_URL || 'http://localhost:3000'
+const baseUrl = (
+  import.meta.env.VITE_RENOVEL_APP_URL || 'https://db.renovel.se'
+).replace(/\/$/, '')
+
+export const RENOVEL_APP_URL = baseUrl
 
 type RequestOptions = {
   method?: string
@@ -32,8 +35,10 @@ export async function apiRequest<T>(
     config.body = JSON.stringify(body)
   }
 
+  const safeEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+
   const response = await fetch(
-    `${RENOVEL_APP_URL}/api/admin${endpoint}`,
+    `${RENOVEL_APP_URL}/api/admin${safeEndpoint}`,
     config,
   )
 
