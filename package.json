@@ -1,6 +1,9 @@
 {
   "name": "renovel-admin-dashboard",
   "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "type": "module",
   "imports": {
     "#/*": "./src/*"
