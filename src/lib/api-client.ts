@@ -1,6 +1,5 @@
-const CONVEX_SITE_URL =
-  import.meta.env.VITE_CONVEX_SITE_URL ||
-  'https://wonderful-mongoose-290.eu-west-1.convex.site'
+export const RENOVEL_APP_URL =
+  import.meta.env.VITE_RENOVEL_APP_URL || 'http://localhost:3000'
 
 type RequestOptions = {
   method?: string
@@ -11,10 +10,6 @@ type RequestOptions = {
 async function getAuthToken(): Promise<string | null> {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('renovel_admin_token')
-}
-
-export function getConvexSiteUrl(): string {
-  return CONVEX_SITE_URL
 }
 
 export async function apiRequest<T>(
@@ -37,7 +32,10 @@ export async function apiRequest<T>(
     config.body = JSON.stringify(body)
   }
 
-  const response = await fetch(`${CONVEX_SITE_URL}/api${endpoint}`, config)
+  const response = await fetch(
+    `${RENOVEL_APP_URL}/api/admin${endpoint}`,
+    config,
+  )
 
   if (response.status === 401) {
     if (typeof window !== 'undefined') {

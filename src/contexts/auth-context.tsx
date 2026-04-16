@@ -66,13 +66,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const user: User = {
-      _id: convexUser._id,
+      _id: (convexUser._id || convexUser.id) as string,
       email: convexUser.email,
       role: convexUser.role as User['role'],
       fullName: convexUser.fullName,
       name: convexUser.name,
       organizationId: convexUser.organizationId,
-      _creationTime: Date.now(),
+      _creationTime: (convexUser._creationTime as number) || Date.now(),
     }
 
     setAuthSession(token, user)

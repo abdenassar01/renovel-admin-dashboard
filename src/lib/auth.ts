@@ -43,11 +43,18 @@ export async function logout() {
 
 export async function refreshSession(): Promise<User | null> {
   try {
-    const user = await api.get<User>('/auth/session')
-    if (user.role !== 'master') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rawUser = await api.get<any>('/auth/session')
+    if (rawUser.role !== 'master') {
       clearAuthSession()
       return null
     }
+
+    const user: User = {
+      ...rawUser,
+      _id: rawUser._id || rawUser.id,
+    }
+
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
     return user
   } catch {

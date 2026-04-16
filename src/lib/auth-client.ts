@@ -1,11 +1,4 @@
-const CONVEX_SITE_URL =
-  import.meta.env.VITE_CONVEX_SITE_URL ||
-  'https://wonderful-mongoose-290.eu-west-1.convex.site'
-
-export { CONVEX_SITE_URL }
-
-const RENOVEL_APP_URL =
-  import.meta.env.VITE_RENOVEL_APP_URL || 'https://stagingdb.renovel.se'
+import { RENOVEL_APP_URL } from './api-client'
 
 export { RENOVEL_APP_URL }
 
@@ -18,7 +11,8 @@ export function getSsoLoginUrl(): string {
 }
 
 export async function validateAdminSession(token: string): Promise<{
-  _id: string
+  id?: string
+  _id?: string
   email: string
   role: string
   fullName?: string
@@ -27,7 +21,7 @@ export async function validateAdminSession(token: string): Promise<{
   [key: string]: unknown
 } | null> {
   try {
-    const res = await fetch(`${CONVEX_SITE_URL}/api/auth/session`, {
+    const res = await fetch(`${RENOVEL_APP_URL}/api/admin/auth/session`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
