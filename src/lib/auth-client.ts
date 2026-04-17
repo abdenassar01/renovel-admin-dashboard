@@ -21,19 +21,13 @@ export async function validateAdminSession(token: string): Promise<{
   [key: string]: unknown
 } | null> {
   try {
-    const res = await fetch(`${RENOVEL_APP_URL}/api/auth/get-session`, {
+    const res = await fetch(`${RENOVEL_APP_URL}/api/admin/auth/session`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
     if (!res.ok) return null
-    const data = await res.json()
-    if (!data?.user) return null
-    return {
-      ...data.user,
-      _id: data.user.id,
-      role: 'master',
-    }
+    return await res.json()
   } catch {
     return null
   }
