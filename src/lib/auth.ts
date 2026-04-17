@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { validateAdminSession } from './auth-client'
 import type { User } from './types'
 
 const AUTH_STORAGE_KEY = 'renovel_admin_token'
@@ -43,16 +43,23 @@ export async function logout() {
 
 export async function refreshSession(): Promise<User | null> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rawUser = await api.get<any>('/auth/session')
-    if (rawUser.role !== 'master') {
+    const token = getStoredToken()
+    if (!token) {
+      clearAuthSession()
+      return null
+    }
+
+    const rawUser = await validateAdminSession(token)
+    if (!rawUser || rawUser.role !== 'master') {
       clearAuthSession()
       return null
     }
 
     const user: User = {
       ...rawUser,
-      _id: rawUser._id || rawUser.id,
+      _id: rawUser._id || rawUser.id || '',
+      role: rawUser.role as User['role'],
+      _creationTime: (rawUser._creationTime as number) || Date.now(),
     }
 
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
