@@ -59,7 +59,7 @@ function DeletedLeadsPage() {
   }
 
   const restoreMutation = useMutation({
-    mutationFn: (id: string) => api.put(`/leads/${id}/restore`),
+    mutationFn: (id: string) => api.post(`/leads/${id}/restore`),
     onSuccess: () => {
       toast.success('Lead restored successfully')
       invalidateLeads()

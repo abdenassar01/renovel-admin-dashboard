@@ -188,7 +188,7 @@ function SidebarContent({
           <div className="flex items-center gap-3">
             <Avatar className="size-8">
               <AvatarFallback className="bg-primary/10 text-xs">
-                {user?.fullName?.charAt(0) || user?.email?.charAt(0) || 'A'}
+                {user?.fullName?.charAt(0) || user?.email.charAt(0) || 'A'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 overflow-hidden">
@@ -232,7 +232,7 @@ export function AdminSidebar() {
     <>
       <aside
         className={cn(
-          'hidden border-r bg-card transition-all duration-300 lg:block',
+          'hidden relative border-r bg-card transition-all duration-300 lg:block',
           isOpen ? 'w-64' : 'w-16',
         )}
       >

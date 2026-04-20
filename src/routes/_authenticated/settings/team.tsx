@@ -145,9 +145,13 @@ function TeamManagementPage() {
   const updateUserRoleMutation = useMutation({
     mutationFn: ({
       id,
+      role,
       ...data
     }: { id: string } & z.infer<typeof editUserSchema>) =>
-      api.put(`/users/${id}`, data),
+      Promise.all([
+        api.put(`/users/${id}/role`, { role }),
+        api.put(`/users/${id}/profile`, data),
+      ]),
     onSuccess: () => {
       toast.success('User updated successfully')
       invalidateUsers()

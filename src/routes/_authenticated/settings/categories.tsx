@@ -117,8 +117,24 @@ function CategoriesPage() {
   })
 
   const reorderMutation = useMutation({
-    mutationFn: ({ id, direction }: { id: string; direction: 'up' | 'down' }) =>
-      api.put(`/categories/${id}/reorder`, { direction }),
+    mutationFn: ({
+      id,
+      direction,
+    }: {
+      id: string
+      direction: 'up' | 'down'
+    }) => {
+      const ids = sorted.map((c) => c._id)
+      const index = ids.indexOf(id)
+      if (index === -1) return Promise.resolve()
+      const newIds = [...ids]
+      if (direction === 'up' && index > 0) {
+        ;[newIds[index - 1], newIds[index]] = [newIds[index], newIds[index - 1]]
+      } else if (direction === 'down' && index < newIds.length - 1) {
+        ;[newIds[index], newIds[index + 1]] = [newIds[index + 1], newIds[index]]
+      }
+      return api.put('/categories/reorder', { categoryIds: newIds })
+    },
     onSuccess: () => {
       invalidateCategories()
     },

@@ -185,7 +185,7 @@ function OrganizationDetailPage() {
 
   const notesMutation = useMutation({
     mutationFn: (newNotes: string) =>
-      api.put(`/organizations/${orgId}`, { approvalNotes: newNotes }),
+      api.put(`/organizations/${orgId}/notes`, { notes: newNotes }),
     onSuccess: () => {
       toast.success('Notes updated')
       invalidateOrg()
@@ -197,7 +197,10 @@ function OrganizationDetailPage() {
 
   const featuresMutation = useMutation({
     mutationFn: (newFeatures: FeatureFlags) =>
-      api.put(`/organizations/${orgId}`, { features: newFeatures }),
+      api.put(`/organizations/${orgId}/features`, {
+        features: newFeatures,
+        planLimits: org?.planLimits,
+      }),
     onSuccess: () => {
       toast.success('Features updated')
       invalidateOrg()
@@ -209,7 +212,10 @@ function OrganizationDetailPage() {
 
   const planLimitsMutation = useMutation({
     mutationFn: (newLimits: PlanLimits) =>
-      api.put(`/organizations/${orgId}`, { planLimits: newLimits }),
+      api.put(`/organizations/${orgId}/features`, {
+        features: org?.features || features,
+        planLimits: newLimits,
+      }),
     onSuccess: () => {
       toast.success('Plan limits updated')
       invalidateOrg()
@@ -221,7 +227,7 @@ function OrganizationDetailPage() {
 
   const applyTemplateMutation = useMutation({
     mutationFn: (templateId: string) =>
-      api.put(`/organizations/${orgId}/apply-template`, { templateId }),
+      api.post(`/plan-templates/${templateId}/apply/${orgId}`),
     onSuccess: () => {
       toast.success('Plan template applied')
       invalidateOrg()
