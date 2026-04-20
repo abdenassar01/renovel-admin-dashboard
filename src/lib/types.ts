@@ -198,6 +198,8 @@ export interface LicenseType {
   _creationTime: number
 }
 
+export type BookingStatus = 'pending' | 'signed' | 'refused'
+
 export interface Registration {
   _id: string
   name: string
@@ -209,6 +211,48 @@ export interface Registration {
   status: RegistrationStatus
   userName?: string
   userRole?: string
+  _creationTime: number
+}
+
+export interface Booking {
+  _id: string
+  name: string
+  idNumber: string
+  email: string
+  phone: string
+  leadId?: string
+  customerType?: string
+  workAddress: string
+  postalCode?: string
+  city?: string
+  doorCode?: string
+  floor?: string
+  workType?: string
+  preferredDate?: string
+  preferredTime?: string
+  hasDrawings?: string
+  useRotDeduction?: string
+  house?: string
+  propertyDesignation?: string
+  brfName?: string
+  customerNumber?: string
+  termsAccepted: boolean
+  signature: string
+  message?: string
+  referFriend?: string
+  adminDate?: string
+  adminTime?: string
+  adminPrice?: string
+  ipAddress?: string
+  userAgent?: string
+  status: BookingStatus
+  refusalReason?: string
+  createdAt: number
+  inviteSentAt?: number
+  reminderSent1h?: boolean
+  reminderSent24h?: boolean
+  completed?: boolean
+  organizationId?: string
   _creationTime: number
 }
 
@@ -310,8 +354,8 @@ export interface DashboardStats {
   totalUsers: number
   totalFeedback: number
   openFeedback: number
-  totalRegistrations: number
-  pendingRegistrations: number
+  totalBookings: number
+  pendingBookings: number
 }
 
 export interface AuthSession {

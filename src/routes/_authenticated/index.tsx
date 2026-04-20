@@ -136,11 +136,11 @@ function DashboardPage() {
           }
         />
         <StatCard
-          title="Pending Registrations"
-          value={stats?.pendingRegistrations ?? 0}
+          title="Pending Bookings"
+          value={stats?.pendingBookings ?? 0}
           icon={AlertCircle}
           badge={
-            stats?.pendingRegistrations
+            stats?.pendingBookings
               ? { label: 'Pending', variant: 'outline' }
               : undefined
           }

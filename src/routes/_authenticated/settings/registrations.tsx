@@ -3,17 +3,10 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
-import {
-  ClipboardList,
-  Search,
-  Check,
-  X,
-  Trash2,
-  ExternalLink,
-} from 'lucide-react'
+import { ClipboardList, Search, Check, X, Trash2 } from 'lucide-react'
 import { api } from '#/lib/api-client'
 import { queryKeys } from '#/lib/query-keys'
-import type { Registration, RegistrationStatus } from '#/lib/types'
+import type { Booking, BookingStatus } from '#/lib/types'
 import {
   Table,
   TableBody,
@@ -35,47 +28,52 @@ import {
 } from '#/components/ui/dialog'
 
 export const Route = createFileRoute('/_authenticated/settings/registrations')({
-  component: RegistrationsPage,
+  component: BookingsPage,
 })
 
 const statusConfig: Record<
-  RegistrationStatus,
+  BookingStatus,
   {
     label: string
     variant: 'default' | 'secondary' | 'destructive' | 'outline'
   }
 > = {
   pending: { label: 'Pending', variant: 'outline' },
-  approved: { label: 'Approved', variant: 'default' },
-  rejected: { label: 'Rejected', variant: 'destructive' },
+  signed: { label: 'Signed', variant: 'default' },
+  refused: { label: 'Refused', variant: 'destructive' },
 }
 
-function RegistrationsPage() {
+function BookingsPage() {
   const [status, setStatus] = useState<string>('all')
   const [search, setSearch] = useState('')
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean
-    registration: Registration | null
-  }>({ open: false, registration: null })
+    booking: Booking | null
+  }>({ open: false, booking: null })
   const queryClient = useQueryClient()
 
-  const { data: registrations = [], isLoading } = useQuery({
+  const { data: bookings = [], isLoading } = useQuery({
     queryKey: queryKeys.registrations.list(status),
-    queryFn: () =>
-      api.get<Registration[]>(
-        `/registrations${status && status !== 'all' ? `?status=${status}` : ''}`,
-      ),
+    queryFn: () => api.get<Booking[]>('/registrations'),
   })
 
-  const filtered = registrations.filter((r) => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      r.name?.toLowerCase().includes(q) || r.email?.toLowerCase().includes(q)
-    )
-  })
+  const filtered = bookings
+    .filter((b) => {
+      if (!search) return true
+      const q = search.toLowerCase()
+      return (
+        b.name?.toLowerCase().includes(q) ||
+        b.email?.toLowerCase().includes(q) ||
+        b.workType?.toLowerCase().includes(q) ||
+        b.city?.toLowerCase().includes(q)
+      )
+    })
+    .filter((b) => {
+      if (!status || status === 'all') return true
+      return b.status === status
+    })
 
-  function invalidateRegistrations() {
+  function invalidateBookings() {
     queryClient.invalidateQueries({ queryKey: queryKeys.registrations.all })
   }
 
@@ -85,11 +83,11 @@ function RegistrationsPage() {
       status: newStatus,
     }: {
       id: string
-      status: RegistrationStatus
+      status: BookingStatus
     }) => api.put(`/registrations/${id}/status`, { status: newStatus }),
     onSuccess: (_, variables) => {
-      toast.success(`Registration ${variables.status}`)
-      invalidateRegistrations()
+      toast.success(`Booking ${variables.status}`)
+      invalidateBookings()
     },
     onError: (error) => toast.error(error.message || 'Failed to update status'),
   })
@@ -97,19 +95,19 @@ function RegistrationsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/registrations/${id}`),
     onSuccess: () => {
-      toast.success('Registration deleted')
-      invalidateRegistrations()
-      setDeleteDialog({ open: false, registration: null })
+      toast.success('Booking deleted')
+      invalidateBookings()
+      setDeleteDialog({ open: false, booking: null })
     },
     onError: (error) =>
-      toast.error(error.message || 'Failed to delete registration'),
+      toast.error(error.message || 'Failed to delete booking'),
   })
 
   const tabs = [
     { value: 'all', label: 'All' },
     { value: 'pending', label: 'Pending' },
-    { value: 'approved', label: 'Approved' },
-    { value: 'rejected', label: 'Rejected' },
+    { value: 'signed', label: 'Signed' },
+    { value: 'refused', label: 'Refused' },
   ]
 
   return (
@@ -117,10 +115,10 @@ function RegistrationsPage() {
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold">
           <ClipboardList className="size-6" />
-          Registrations
+          Bookings
         </h1>
         <p className="text-sm text-muted-foreground">
-          Review and manage user registration requests
+          Review and manage booking requests
         </p>
       </div>
 
@@ -136,10 +134,10 @@ function RegistrationsPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by name or email..."
+              placeholder="Search by name, email, or work type..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-[280px] pl-9"
+              className="w-[320px] pl-9"
             />
           </div>
         </div>
@@ -152,7 +150,7 @@ function RegistrationsPage() {
               </div>
             ) : filtered.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground">
-                No registrations found
+                No bookings found
               </div>
             ) : (
               <div className="rounded-lg border bg-card">
@@ -161,53 +159,43 @@ function RegistrationsPage() {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Work Type</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>IP Address</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>City</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtered.map((reg) => (
-                      <TableRow key={reg._id}>
-                        <TableCell className="font-medium">
-                          {reg.name}
-                        </TableCell>
+                    {filtered.map((b) => (
+                      <TableRow key={b._id}>
+                        <TableCell className="font-medium">{b.name}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {reg.email}
+                          {b.email}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {b.workType || '\u2014'}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={statusConfig[reg.status].variant}>
-                            {statusConfig[reg.status].label}
+                          <Badge
+                            variant={
+                              statusConfig[b.status]?.variant ?? 'outline'
+                            }
+                          >
+                            {statusConfig[b.status]?.label ?? b.status}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {format(new Date(reg._creationTime), 'MMM d, yyyy')}
+                          {b.adminDate
+                            ? format(new Date(b.adminDate), 'MMM d, yyyy')
+                            : format(new Date(b.createdAt), 'MMM d, yyyy')}
                         </TableCell>
-                        <TableCell>
-                          {reg.userId ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-auto p-0 text-primary"
-                              asChild
-                            >
-                              <a href={`/users/${reg.userId}`}>
-                                {reg.userName || reg.userId}
-                                <ExternalLink className="ml-1 size-3" />
-                              </a>
-                            </Button>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm text-muted-foreground">
-                          {reg.ipAddress || '—'}
+                        <TableCell className="text-sm text-muted-foreground">
+                          {b.city || '\u2014'}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            {reg.status === 'pending' && (
+                            {b.status === 'pending' && (
                               <>
                                 <Button
                                   variant="outline"
@@ -215,13 +203,13 @@ function RegistrationsPage() {
                                   className="text-green-600 hover:text-green-700"
                                   onClick={() =>
                                     updateStatusMutation.mutate({
-                                      id: reg._id,
-                                      status: 'approved',
+                                      id: b._id,
+                                      status: 'signed',
                                     })
                                   }
                                 >
                                   <Check className="mr-1 size-4" />
-                                  Approve
+                                  Sign
                                 </Button>
                                 <Button
                                   variant="outline"
@@ -229,13 +217,13 @@ function RegistrationsPage() {
                                   className="text-red-600 hover:text-red-700"
                                   onClick={() =>
                                     updateStatusMutation.mutate({
-                                      id: reg._id,
-                                      status: 'rejected',
+                                      id: b._id,
+                                      status: 'refused',
                                     })
                                   }
                                 >
                                   <X className="mr-1 size-4" />
-                                  Reject
+                                  Refuse
                                 </Button>
                               </>
                             )}
@@ -246,7 +234,7 @@ function RegistrationsPage() {
                               onClick={() =>
                                 setDeleteDialog({
                                   open: true,
-                                  registration: reg,
+                                  booking: b,
                                 })
                               }
                             >
@@ -267,34 +255,32 @@ function RegistrationsPage() {
       <Dialog
         open={deleteDialog.open}
         onOpenChange={(open) =>
-          !open && setDeleteDialog({ open: false, registration: null })
+          !open && setDeleteDialog({ open: false, booking: null })
         }
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Registration</DialogTitle>
+            <DialogTitle>Delete Booking</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete the registration for{' '}
+            Are you sure you want to delete the booking for{' '}
             <span className="font-medium text-foreground">
-              {deleteDialog.registration?.name}
+              {deleteDialog.booking?.name}
             </span>
             ?
           </p>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() =>
-                setDeleteDialog({ open: false, registration: null })
-              }
+              onClick={() => setDeleteDialog({ open: false, booking: null })}
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={() => {
-                if (deleteDialog.registration)
-                  deleteMutation.mutate(deleteDialog.registration._id)
+                if (deleteDialog.booking)
+                  deleteMutation.mutate(deleteDialog.booking._id)
               }}
               disabled={deleteMutation.isPending}
             >
